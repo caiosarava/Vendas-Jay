@@ -319,6 +319,22 @@
 
     .btn-secondary:hover { background: var(--border); }
 
+    .btn-edit-ghost {
+      background: transparent;
+      color: var(--primary);
+      width: auto;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-edit-ghost:hover {
+      background: var(--primary-light);
+    }
+
     .btn-danger-ghost {
       background: transparent;
       color: var(--danger);
@@ -326,6 +342,9 @@
       padding: 6px 12px;
       font-size: 0.85rem;
       border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
     }
 
     .btn-danger-ghost:hover {
@@ -338,7 +357,7 @@
       transform: none !important;
     }
 
-    /* Items List for New Sale */
+    /* Items List for New/Edit Sale */
     .item-row {
       display: grid;
       grid-template-columns: 2.5fr 1fr 1.5fr auto;
@@ -536,7 +555,9 @@
       background: var(--surface);
       border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 420px;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
       padding: 24px;
       box-shadow: var(--shadow-lg);
       transform: translateY(12px) scale(0.97);
@@ -603,11 +624,6 @@
 
     .toast.success { border-left-color: var(--success); }
     .toast.danger { border-left-color: var(--danger); }
-
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(-12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
 
     /* Skeleton Loading */
     .skeleton {
@@ -808,6 +824,41 @@
     </div>
   </div>
 
+  <!-- Edit Sale Modal -->
+  <div class="modal-backdrop" id="modal-edit">
+    <div class="modal-card">
+      <div class="modal-header">✏️ Editar Venda</div>
+      <div class="modal-body" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label" for="edit-cli">Nome do Cliente *</label>
+          <input id="edit-cli" placeholder="Nome do cliente" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edit-tel">Telefone / WhatsApp</label>
+          <input id="edit-tel" type="tel" placeholder="(00) 00000-0000">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Produtos / Itens *</label>
+          <div id="edit-itens"></div>
+          <button type="button" class="btn btn-secondary" onclick="addEditItem()" style="margin-top: 8px;">
+            <span>➕</span> Adicionar outro produto
+          </button>
+        </div>
+
+        <div class="total-box">
+          <span>Novo Valor Total</span>
+          <span class="total-amount" id="edit-tot">R$ 0,00</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="fecharModal('modal-edit')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-salvar-edicao" onclick="salvarEdicao()">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -818,6 +869,8 @@
 
     let D = [];
     let statusFiltro = 'todos';
+    let editVendaId = null;
+    let editVendaData = null;
 
     // Toast Notification System
     function toast(mensagem, tipo = 'info') {
@@ -1035,9 +1088,12 @@
               </div>
             ` : ''}
 
-            <div style="text-align: right; margin-top: 8px;">
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+              <button class="btn-edit-ghost" onclick="abrirEdicao('${v.id}')">
+                ✏️ Editar Venda
+              </button>
               <button class="btn-danger-ghost" onclick="excluir('${v.id}')">
-                🗑️ Excluir Venda
+                🗑️ Excluir
               </button>
             </div>
           </div>
@@ -1091,6 +1147,91 @@
       );
     }
 
+    /* EDIT SALE FUNCTIONS */
+    function abrirEdicao(id) {
+      const v = D.find(item => item.id === id);
+      if (!v) return toast('Venda não encontrada', 'danger');
+
+      editVendaId = id;
+      editVendaData = v.data;
+
+      $('edit-cli').value = v.cliente || '';
+      $('edit-tel').value = v.telefone || '';
+      $('edit-itens').innerHTML = '';
+
+      if (v.itens && v.itens.length) {
+        v.itens.forEach(i => addEditItem(i.nome, i.qtd, i.preco));
+      } else {
+        addEditItem();
+      }
+
+      editTotal();
+      abrirModal('modal-edit');
+    }
+
+    function addEditItem(nome = '', qtd = 1, preco = '') {
+      const d = document.createElement('div');
+      d.className = 'item-row';
+      d.innerHTML = `
+        <input placeholder="Nome do produto" value="${nome}" required>
+        <input type="number" min="1" value="${qtd}" placeholder="Qtd">
+        <input type="number" step="0.01" value="${preco}" placeholder="Preço Un. (R$)">
+        <button class="item-del-btn" type="button" title="Remover item">✕</button>
+      `;
+      d.querySelectorAll('input').forEach(i => i.oninput = editTotal);
+      d.querySelector('.item-del-btn').onclick = () => {
+        d.remove();
+        editTotal();
+      };
+      $('edit-itens').appendChild(d);
+    }
+
+    function getEditItens() {
+      return [...document.querySelectorAll('#edit-itens .item-row')].map(d => {
+        const i = d.querySelectorAll('input');
+        return { nome: i[0].value.trim(), qtd: +i[1].value, preco: +i[2].value };
+      }).filter(i => i.nome && i.qtd > 0);
+    }
+
+    function editTotal() {
+      const tot = getEditItens().reduce((s, i) => s + i.qtd * i.preco, 0);
+      $('edit-tot').textContent = R(tot);
+    }
+
+    function salvarEdicao() {
+      const it = getEditItens();
+      const c = $('edit-cli').value.trim();
+      if (!c || !it.length) {
+        return toast('Informe o nome do cliente e ao menos um produto.', 'danger');
+      }
+
+      const btn = $('btn-salvar-edicao');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Salvando...`;
+
+      api('venda', 'PUT', {
+        id: editVendaId,
+        data: editVendaData || hoje(),
+        cliente: c,
+        telefone: $('edit-tel').value.trim(),
+        itens: it
+      })
+      .then(d => {
+        D = d;
+        render();
+        fecharModal('modal-edit');
+        toast('Venda atualizada com sucesso!', 'success');
+      })
+      .catch(e => {
+        toast(e.message, 'danger');
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = `Salvar Alterações`;
+      });
+    }
+
+    /* NEW SALE FUNCTIONS */
     function addItem() {
       const d = document.createElement('div');
       d.className = 'item-row';
@@ -1109,7 +1250,7 @@
     }
 
     function itens() {
-      return [...document.querySelectorAll('.item-row')].map(d => {
+      return [...document.querySelectorAll('#itens .item-row')].map(d => {
         const i = d.querySelectorAll('input');
         return { nome: i[0].value.trim(), qtd: +i[1].value, preco: +i[2].value };
       }).filter(i => i.nome && i.qtd > 0);
