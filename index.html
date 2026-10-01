@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minha Loja - Gestão de Vendas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #d81b60;
+      --primary-hover: #c2185b;
+      --primary-light: #fce4ec;
+      --primary-glow: rgba(216, 27, 96, 0.15);
+
+      --bg: #fdf8f9;
+      --surface: #ffffff;
+      --surface-subtle: #f9f1f4;
+      --border: #f0e1e7;
+
+      --text: #2c1e23;
+      --text-muted: #8c737c;
+
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-bg: #fffbe2;
+      --danger: #e11d48;
+      --danger-bg: #fff1f2;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 2px 8px rgba(216, 27, 96, 0.04);
+      --shadow-md: 0 8px 24px rgba(216, 27, 96, 0.08);
+      --shadow-lg: 0 16px 32px rgba(216, 27, 96, 0.12);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #140f12;
+        --surface: #1e171a;
+        --surface-subtle: #291f24;
+        --border: #3d2c34;
+
+        --text: #f5ecef;
+        --text-muted: #b39ca5;
+
+        --primary-light: #381523;
+        --primary-glow: rgba(216, 27, 96, 0.25);
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 90px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @media (min-width: 768px) {
+      body { padding-bottom: 40px; }
+    }
+
+    /* Header & Navigation */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .desktop-nav {
+      display: none;
+      gap: 8px;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-nav { display: flex; }
+      .mobile-nav { display: none !important; }
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--surface-subtle);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .auth-btn {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .auth-btn:hover { background: var(--border); }
+
+    /* Main Container */
+    main {
+      max-width: 860px;
+      margin: 24px auto 0;
+      padding: 0 16px;
+    }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 600px) {
+      .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: var(--primary);
+      opacity: 0.7;
+    }
+
+    .kpi-card.success::before { background: var(--success); }
+    .kpi-card.danger::before { background: var(--danger); }
+    .kpi-card.warning::before { background: var(--warning); }
+
+    .kpi-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .kpi-value.success { color: var(--success); }
+    .kpi-value.danger { color: var(--danger); }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--surface-subtle);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--border); }
+
+    .btn-danger-ghost {
+      background: transparent;
+      color: var(--danger);
+      width: auto;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+    }
+
+    .btn-danger-ghost:hover {
+      background: var(--danger-bg);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Items List for New Sale */
+    .item-row {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr 1.5fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      background: var(--surface-subtle);
+      padding: 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    @media (max-width: 480px) {
+      .item-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .item-row input:first-child {
+        grid-column: 1 / -1;
+      }
+      .item-del-btn {
+        grid-column: 2;
+        justify-self: end;
+      }
+    }
+
+    .item-del-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .item-del-btn:hover { background: var(--danger-bg); }
+
+    .total-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      margin: 16px 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .total-amount {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    /* Filters Bar */
+    .filters-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 600px) {
+      .filters-bar {
+        flex-direction: row;
+        align-items: center;
+      }
+      .search-box { flex: 1; }
+      .status-pills { width: auto; }
+    }
+
+    .status-pills {
+      display: flex;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    .pill-btn {
+      flex: 1;
+      text-align: center;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .pill-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    /* Sales / Debts Cards */
+    .progress-bar-bg {
+      height: 8px;
+      background: var(--surface-subtle);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+
+    .payment-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
+    /* Mobile Nav Bar */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.03);
+      z-index: 90;
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
+
+    .mobile-nav-item.active {
+      color: var(--primary);
+    }
+
+    .mobile-nav-icon {
+      font-size: 1.25rem;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 420px;
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(12px) scale(0.97);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-backdrop.active .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .modal-body {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 16px; right: 16px; left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 300;
+      pointer-events: none;
+    }
+
+    @media (min-width: 500px) {
+      .toast-container {
+        left: auto;
+        width: 360px;
+      }
+    }
+
+    .toast {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: toastIn 0.3s ease;
+      border-left: 4px solid var(--primary);
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.danger { border-left-color: var(--danger); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-subtle) 25%, var(--border) 50%, var(--surface-subtle) 75%);
+      background-size: 200% 100%;
+      animation: skeletonLoading 1.5s infinite;
+      border-radius: 6px;
+      height: 20px;
+    }
+
+    @keyframes skeletonLoading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Utilities */
+    .flex-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      display: block;
+      opacity: 0.8;
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <a href="#" class="brand">
+        <div class="brand-icon">🌸</div>
+        <span>Minha Loja</span>
+      </a>
+
+      <nav class="desktop-nav">
+        <button class="nav-btn active" data-target="resumo">
+          <span>📊</span> Resumo
+        </button>
+        <button class="nav-btn" data-target="nova">
+          <span>➕</span> Nova Venda
+        </button>
+        <button class="nav-btn" data-target="pags">
+          <span>💰</span> Pagamentos
+        </button>
+      </nav>
+
+      <button class="auth-btn" onclick="alterarSenha()">
+        <span>🔒</span> Senha
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- RESUMO SECTION -->
+    <section id="resumo" class="section active">
+      <div class="kpi-grid" id="kpis">
+        <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
+        <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
+        <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
+        <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Clientes Devendo</span>
+          <span style="font-size:0.8rem; font-weight:500; color:var(--text-muted);" id="devedores-count">0 clientes</span>
+        </div>
+        <div id="devedores">
+          <div class="empty-state">
+            <span class="empty-icon">🎉</span>
+            Ninguém devendo no momento!
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVA VENDA SECTION -->
+    <section id="nova" class="section">
+      <div class="card">
+        <div class="card-title">
+          <span>Registrar Nova Venda</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cli">Nome do Cliente *</label>
+          <input id="cli" placeholder="Ex: Maria Silva" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="tel">Telefone / WhatsApp</label>
+          <input id="tel" type="tel" placeholder="(00) 00000-0000">
+        </div>
+
+        <div class="form-group">
+          <div class="flex-row" style="margin-bottom: 6px;">
+            <label class="form-label" style="margin: 0;">Produtos / Itens *</label>
+          </div>
+          <div id="itens"></div>
+
+          <button type="button" class="btn btn-secondary" onclick="addItem()" style="margin-top: 8px;">
+            <span>➕</span> Adicionar outro produto
+          </button>
+        </div>
+
+        <div class="total-box">
+          <span>Valor Total da Venda</span>
+          <span class="total-amount" id="tot">R$ 0,00</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ent">Valor Pago Agora / Entrada (opcional)</label>
+          <input id="ent" type="number" step="0.01" min="0" placeholder="R$ 0,00">
+        </div>
+
+        <button type="button" class="btn btn-primary" id="bs" onclick="salvar()">
+          <span>💾</span> Salvar Venda
+        </button>
+      </div>
+    </section>
+
+    <!-- PAGAMENTOS & BUSCA SECTION -->
+    <section id="pags" class="section">
+      <div class="filters-bar">
+        <div class="search-box">
+          <input id="busca" placeholder="🔍 Buscar por nome do cliente..." oninput="listar()">
+        </div>
+        <div class="status-pills">
+          <button class="pill-btn active" onclick="filtrarStatus('todos', this)">Todos</button>
+          <button class="pill-btn" onclick="filtrarStatus('pendente', this)">Pendentes</button>
+          <button class="pill-btn" onclick="filtrarStatus('quitado', this)">Quitados</button>
+        </div>
+      </div>
+
+      <div id="lista">
+        <div class="empty-state">
+          <span class="empty-icon">📦</span>
+          Carregando vendas...
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Navigation -->
+  <nav class="mobile-nav">
+    <a class="mobile-nav-item active" data-target="resumo">
+      <span class="mobile-nav-icon">📊</span>
+      <span>Resumo</span>
+    </a>
+    <a class="mobile-nav-item" data-target="nova">
+      <span class="mobile-nav-icon">➕</span>
+      <span>Nova Venda</span>
+    </a>
+    <a class="mobile-nav-item" data-target="pags">
+      <span class="mobile-nav-icon">💰</span>
+      <span>Pagamentos</span>
+    </a>
+  </nav>
+
+  <!-- Confirm Modal -->
+  <div class="modal-backdrop" id="modal-confirm">
+    <div class="modal-card">
+      <div class="modal-header" id="modal-confirm-title">Confirmação</div>
+      <div class="modal-body" id="modal-confirm-msg">Tem certeza que deseja prosseguir com esta ação?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="fecharModal('modal-confirm')">Cancelar</button>
+        <button class="btn btn-primary" id="modal-confirm-btn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Prompt Modal -->
+  <div class="modal-backdrop" id="modal-auth">
+    <div class="modal-card">
+      <div class="modal-header">Senha de Acesso</div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px;">Por favor, digite a senha configurada no aplicativo para continuar:</p>
+        <input type="password" id="auth-key-input" placeholder="Digite sua senha..." style="width: 100%;">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="salvarSenhaModal()">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const R = n => (+n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const hoje = () => new Date().toISOString().slice(0, 10);
+
+    let D = [];
+    let statusFiltro = 'todos';
+
+    // Toast Notification System
+    function toast(mensagem, tipo = 'info') {
+      const container = $('toast-container');
+      const item = document.createElement('div');
+      item.className = `toast ${tipo}`;
+      const icon = tipo === 'success' ? '✅' : tipo === 'danger' ? '⚠️' : 'ℹ️';
+      item.innerHTML = `<span>${icon}</span><span>${mensagem}</span>`;
+      container.appendChild(item);
+      setTimeout(() => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(-10px)';
+        item.style.transition = 'all 0.3s ease';
+        setTimeout(() => item.remove(), 300);
+      }, 3500);
+    }
+
+    // Modal Control
+    function abrirModal(id) {
+      $(id).classList.add('active');
+    }
+    function fecharModal(id) {
+      $(id).classList.remove('active');
+    }
+
+    function confirmarAcao(titulo, mensagem, callback) {
+      $('modal-confirm-title').textContent = titulo;
+      $('modal-confirm-msg').textContent = mensagem;
+      const btn = $('modal-confirm-btn');
+      btn.onclick = () => {
+        fecharModal('modal-confirm');
+        callback();
+      };
+      abrirModal('modal-confirm');
+    }
+
+    // Password Management
+    function key() {
+      let k = localStorage.getItem('k');
+      if (!k) {
+        abrirModal('modal-auth');
+        setTimeout(() => $('auth-key-input').focus(), 100);
+      }
+      return k;
+    }
+
+    function salvarSenhaModal() {
+      const val = $('auth-key-input').value.trim();
+      if (!val) return toast('Informe a senha', 'danger');
+      localStorage.setItem('k', val);
+      fecharModal('modal-auth');
+      carregar();
+    }
+
+    function alterarSenha() {
+      $('auth-key-input').value = localStorage.getItem('k') || '';
+      abrirModal('modal-auth');
+    }
+
+    // API Helper
+    async function api(url, method = 'GET', body) {
+      const userKey = key();
+      if (!userKey) return [];
+
+      const r = await fetch('/api/' + url, {
+        method,
+        headers: {
+          'content-type': 'application/json',
+          'x-app-key': userKey
+        },
+        body: body && JSON.stringify(body)
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 401) {
+        localStorage.removeItem('k');
+        toast('Senha incorreta. Por favor, tente novamente.', 'danger');
+        abrirModal('modal-auth');
+        throw new Error('Senha incorreta');
+      }
+      if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status);
+      return j;
+    }
+
+    const pago = v => (v.pagamentos || []).reduce((s, p) => s + +p.valor, 0);
+    const falta = v => v.total - pago(v);
+
+    // Navigation setup
+    document.querySelectorAll('[data-target]').forEach(el => {
+      el.onclick = () => {
+        const target = el.dataset.target;
+        document.querySelectorAll('[data-target]').forEach(item => {
+          item.classList.toggle('active', item.dataset.target === target);
+        });
+        document.querySelectorAll('.section').forEach(sec => {
+          sec.classList.toggle('active', sec.id === target);
+        });
+      };
+    });
+
+    function carregar() {
+      api('dados')
+        .then(d => {
+          D = d;
+          render();
+        })
+        .catch(e => {
+          if (e.message !== 'Senha incorreta') {
+            toast(e.message, 'danger');
+          }
+        });
+    }
+
+    function render() {
+      const vend = D.reduce((s, v) => s + +v.total, 0);
+      const rec = D.reduce((s, v) => s + pago(v), 0);
+      const dev = {};
+      D.forEach(v => {
+        if (falta(v) > 0.009) dev[v.cliente] = (dev[v.cliente] || 0) + falta(v);
+      });
+      const n = Object.keys(dev);
+
+      $('kpis').innerHTML = [
+        ['Total Vendido', R(vend), ''],
+        ['Recebido', R(rec), 'success'],
+        ['A Receber', R(vend - rec), 'danger'],
+        ['Clientes Devendo', n.length, 'warning']
+      ].map(([k, v, c]) => `
+        <div class="kpi-card ${c}">
+          <div class="kpi-label">${k}</div>
+          <div class="kpi-value ${c}">${v}</div>
+        </div>
+      `).join('');
+
+      $('devedores-count').textContent = `${n.length} cliente${n.length === 1 ? '' : 's'}`;
+
+      $('devedores').innerHTML = n.sort((a, b) => dev[b] - dev[a]).map(c => `
+        <div class="card flex-row" style="padding: 12px 16px; margin-bottom: 8px;">
+          <span style="font-weight: 600;">${c}</span>
+          <span class="badge badge-danger" style="font-size: 0.9rem;">${R(dev[c])}</span>
+        </div>
+      `).join('') || `
+        <div class="empty-state">
+          <span class="empty-icon">🎉</span>
+          Ninguém devendo no momento!
+        </div>
+      `;
+
+      listar();
+    }
+
+    function filtrarStatus(st, btn) {
+      statusFiltro = st;
+      document.querySelectorAll('.status-pills .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      listar();
+    }
+
+    function listar() {
+      const q = $('busca').value.toLowerCase().trim();
+      let filtrados = D.filter(v => v.cliente.toLowerCase().includes(q));
+
+      if (statusFiltro === 'pendente') {
+        filtrados = filtrados.filter(v => falta(v) > 0.009);
+      } else if (statusFiltro === 'quitado') {
+        filtrados = filtrados.filter(v => falta(v) <= 0.009);
+      }
+
+      $('lista').innerHTML = filtrados.slice().reverse().map(v => {
+        const p = pago(v);
+        const f = falta(v);
+        const pc = v.total ? Math.min(100, Math.max(0, p / v.total * 100)) : 0;
+        const estaQuitado = f <= 0.009;
+
+        const itensFormatados = (v.itens || []).map(i => `${i.qtd}x ${i.nome}`).join(', ');
+
+        return `
+          <div class="card">
+            <div class="flex-row" style="margin-bottom: 6px;">
+              <div>
+                <strong style="font-size: 1.05rem;">${v.cliente}</strong>
+                ${v.telefone ? `<span style="font-size: 0.82rem; color: var(--text-muted); display: block;">📞 ${v.telefone}</span>` : ''}
+              </div>
+              <span class="badge ${estaQuitado ? 'badge-success' : 'badge-danger'}">
+                ${estaQuitado ? 'Quitado' : 'Pendente'}
+              </span>
+            </div>
+
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+              📦 ${itensFormatados || 'Sem itens'}
+            </div>
+
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" style="width: ${pc}%"></div>
+            </div>
+
+            <div class="flex-row" style="font-size: 0.88rem; margin-bottom: 8px;">
+              <span>Total: <b>${R(v.total)}</b></span>
+              <span style="color: var(--success);">Pago: ${R(p)}</span>
+              <span style="color: ${estaQuitado ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
+                ${estaQuitado ? 'Totalmente Pago' : 'Falta: ' + R(f)}
+              </span>
+            </div>
+
+            ${!estaQuitado ? `
+              <div class="payment-form">
+                <input type="number" step="0.01" id="pv${v.id}" placeholder="Valor do pagamento (R$)" style="flex: 1.2;">
+                <select id="pf${v.id}" style="flex: 1;">
+                  <option>Pix</option>
+                  <option>Dinheiro</option>
+                  <option>Cartão</option>
+                </select>
+                <button class="btn btn-primary" style="width: auto; padding: 0 14px;" onclick="pagar('${v.id}', ${f})">
+                  Receber
+                </button>
+              </div>
+            ` : ''}
+
+            <div style="text-align: right; margin-top: 8px;">
+              <button class="btn-danger-ghost" onclick="excluir('${v.id}')">
+                🗑️ Excluir Venda
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('') || `
+        <div class="empty-state">
+          <span class="empty-icon">🔍</span>
+          Nenhuma venda encontrada.
+        </div>
+      `;
+    }
+
+    function pagar(id, f) {
+      const val = +$('pv' + id).value;
+      if (!(val > 0)) return toast('Informe o valor do pagamento', 'danger');
+
+      const efetuarPagamento = () => {
+        api('pagamento', 'POST', { vendaId: id, data: hoje(), valor: val, forma: $('pf' + id).value })
+          .then(d => {
+            D = d;
+            render();
+            toast('Pagamento registrado com sucesso!', 'success');
+          })
+          .catch(e => toast(e.message, 'danger'));
+      };
+
+      if (val > f + 0.009) {
+        confirmarAcao(
+          'Valor maior que o saldo',
+          `O valor informado (${R(val)}) é maior do que o saldo restante (${R(f)}). Deseja continuar assim mesmo?`,
+          efetuarPagamento
+        );
+      } else {
+        efetuarPagamento();
+      }
+    }
+
+    function excluir(id) {
+      confirmarAcao(
+        'Excluir Venda',
+        'Tem certeza que deseja excluir esta venda e todos os pagamentos vinculados a ela? Esta ação não pode ser desfeita.',
+        () => {
+          api('venda?id=' + id, 'DELETE')
+            .then(d => {
+              D = d;
+              render();
+              toast('Venda excluída com sucesso!', 'success');
+            })
+            .catch(e => toast(e.message, 'danger'));
+        }
+      );
+    }
+
+    function addItem() {
+      const d = document.createElement('div');
+      d.className = 'item-row';
+      d.innerHTML = `
+        <input placeholder="Nome do produto" required>
+        <input type="number" min="1" value="1" placeholder="Qtd">
+        <input type="number" step="0.01" placeholder="Preço Un. (R$)">
+        <button class="item-del-btn" type="button" title="Remover item">✕</button>
+      `;
+      d.querySelectorAll('input').forEach(i => i.oninput = total);
+      d.querySelector('.item-del-btn').onclick = () => {
+        d.remove();
+        total();
+      };
+      $('itens').appendChild(d);
+    }
+
+    function itens() {
+      return [...document.querySelectorAll('.item-row')].map(d => {
+        const i = d.querySelectorAll('input');
+        return { nome: i[0].value.trim(), qtd: +i[1].value, preco: +i[2].value };
+      }).filter(i => i.nome && i.qtd > 0);
+    }
+
+    function total() {
+      const tot = itens().reduce((s, i) => s + i.qtd * i.preco, 0);
+      $('tot').textContent = R(tot);
+    }
+
+    function salvar() {
+      const it = itens();
+      const c = $('cli').value.trim();
+      if (!c || !it.length) {
+        return toast('Informe o nome do cliente e ao menos um produto.', 'danger');
+      }
+
+      const btnBs = $('bs');
+      btnBs.disabled = true;
+      btnBs.innerHTML = `<span class="spinner"></span> Salvando...`;
+
+      api('venda', 'POST', {
+        data: hoje(),
+        cliente: c,
+        telefone: $('tel').value.trim(),
+        itens: it,
+        entrada: +$('ent').value || 0
+      })
+      .then(d => {
+        D = d;
+        render();
+        $('cli').value = '';
+        $('tel').value = '';
+        $('ent').value = '';
+        $('itens').innerHTML = '';
+        addItem();
+        total();
+        toast('Venda registrada com sucesso!', 'success');
+        document.querySelector('[data-target="pags"]').click();
+      })
+      .catch(e => {
+        toast(e.message, 'danger');
+      })
+      .finally(() => {
+        btnBs.disabled = false;
+        btnBs.innerHTML = `<span>💾</span> Salvar Venda`;
+      });
+    }
+
+    // Initial setup
+    addItem();
+    carregar();
+  </script>
+</body>
+</html>
