@@ -487,6 +487,16 @@
     .badge-success { background: var(--success-bg); color: var(--success); }
     .badge-danger { background: var(--danger-bg); color: var(--danger); }
 
+    .debtor-card {
+      transition: all 0.2s ease;
+    }
+
+    .debtor-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
     .payment-form {
       display: flex;
       gap: 8px;
@@ -1007,7 +1017,7 @@
       $('devedores-count').textContent = `${n.length} cliente${n.length === 1 ? '' : 's'}`;
 
       $('devedores').innerHTML = n.sort((a, b) => dev[b] - dev[a]).map(c => `
-        <div class="card flex-row" style="padding: 12px 16px; margin-bottom: 8px;">
+        <div class="card debtor-card flex-row" onclick="filtrarCliente('${c}')" style="padding: 12px 16px; margin-bottom: 8px; cursor: pointer;" title="Ver pagamentos de ${c}">
           <span style="font-weight: 600;">${c}</span>
           <span class="badge badge-danger" style="font-size: 0.9rem;">${R(dev[c])}</span>
         </div>
@@ -1018,6 +1028,13 @@
         </div>
       `;
 
+      listar();
+    }
+
+    function filtrarCliente(nome) {
+      $('busca').value = nome;
+      const btnPags = document.querySelector('[data-target="pags"]');
+      if (btnPags) btnPags.click();
       listar();
     }
 
