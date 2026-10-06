@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Minha Loja - Gestão de Vendas</title>
+  <title>Minha Loja - Gestão de Vendas, Estoque e Custos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -77,9 +77,9 @@
     }
 
     .header-container {
-      max-width: 860px;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 16px 20px;
+      padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -90,7 +90,7 @@
       align-items: center;
       gap: 10px;
       font-weight: 800;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       color: var(--primary);
       text-decoration: none;
     }
@@ -110,7 +110,7 @@
 
     .desktop-nav {
       display: none;
-      gap: 8px;
+      gap: 6px;
     }
 
     @media (min-width: 768px) {
@@ -119,17 +119,17 @@
     }
 
     .nav-btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 10px;
       border: none;
       background: transparent;
       color: var(--text-muted);
       font-weight: 600;
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s ease;
     }
 
@@ -161,8 +161,8 @@
 
     /* Main Container */
     main {
-      max-width: 860px;
-      margin: 24px auto 0;
+      max-width: 920px;
+      margin: 20px auto 0;
       padding: 0 16px;
     }
 
@@ -208,7 +208,7 @@
     }
 
     @media (min-width: 600px) {
-      .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
     }
 
     .kpi-card {
@@ -235,7 +235,7 @@
 
     .kpi-label {
       color: var(--text-muted);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -243,7 +243,7 @@
     }
 
     .kpi-value {
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       font-weight: 800;
       color: var(--text);
     }
@@ -262,6 +262,16 @@
       font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 6px;
+    }
+
+    .inline-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    @media (max-width: 500px) {
+      .inline-form { flex-direction: column; }
     }
 
     input, select, textarea {
@@ -357,7 +367,7 @@
       transform: none !important;
     }
 
-    /* Items List for New/Edit Sale */
+    /* Items List */
     .item-row {
       display: grid;
       grid-template-columns: 2.5fr 1fr 1.5fr auto;
@@ -459,7 +469,7 @@
       box-shadow: 0 2px 8px var(--primary-glow);
     }
 
-    /* Sales / Debts Cards */
+    /* Sales / Cards */
     .progress-bar-bg {
       height: 8px;
       background: var(--surface-subtle);
@@ -513,7 +523,7 @@
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
-      padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+      padding: 8px 2px calc(8px + env(safe-area-inset-bottom));
       box-shadow: 0 -4px 16px rgba(0,0,0,0.03);
       z-index: 90;
     }
@@ -522,13 +532,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
+      gap: 2px;
       color: var(--text-muted);
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 600;
       text-decoration: none;
       cursor: pointer;
-      padding: 4px 12px;
+      padding: 4px 6px;
       border-radius: 8px;
     }
 
@@ -537,7 +547,30 @@
     }
 
     .mobile-nav-icon {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--surface-subtle);
     }
 
     /* Modals */
@@ -694,6 +727,12 @@
         <button class="nav-btn" data-target="pags">
           <span>💰</span> Pagamentos
         </button>
+        <button class="nav-btn" data-target="custos">
+          <span>💸</span> Custos
+        </button>
+        <button class="nav-btn" data-target="estoque">
+          <span>📦</span> Estoque
+        </button>
       </nav>
 
       <button class="auth-btn" onclick="alterarSenha()">
@@ -706,6 +745,8 @@
     <!-- RESUMO SECTION -->
     <section id="resumo" class="section active">
       <div class="kpi-grid" id="kpis">
+        <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
+        <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
         <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
         <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
         <div class="kpi-card"><div class="skeleton" style="width: 60%; margin-bottom: 8px;"></div><div class="skeleton" style="width: 80%; height: 28px;"></div></div>
@@ -790,6 +831,83 @@
         </div>
       </div>
     </section>
+
+    <!-- CUSTOS FIXOS SECTION -->
+    <section id="custos" class="section">
+      <div class="card">
+        <div class="card-title">
+          <span>💸 Cadastrar Custo Fixo</span>
+        </div>
+        <div class="inline-form" style="margin-bottom: 12px;">
+          <input id="custo-desc" placeholder="Descrição (ex: Combustível, Passagens, Luz)" style="flex: 2;">
+          <input id="custo-val" type="number" step="0.01" min="0" placeholder="Valor (R$)" style="flex: 1;">
+          <button class="btn btn-primary" id="btn-add-custo" onclick="salvarCusto()" style="width: auto; padding: 12px 20px; white-space: nowrap;">
+            ➕ Adicionar Custo
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Lista de Custos Fixos</span>
+          <span style="font-size: 0.9rem; font-weight: 700; color: var(--danger);" id="custos-total-badge">Total: R$ 0,00</span>
+        </div>
+        <div id="custos-lista">
+          <div class="empty-state">
+            <span class="empty-icon">💸</span>
+            Nenhum custo cadastrado.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTOQUE SECTION -->
+    <section id="estoque" class="section">
+      <div class="card">
+        <div class="card-title">
+          <span id="estoque-form-title">📦 Cadastrar Produto no Estoque</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="est-nome">Nome do Produto *</label>
+          <input id="est-nome" placeholder="Ex: Camisa de Seda Rosa" required>
+        </div>
+        <div class="inline-form" style="margin-bottom: 14px;">
+          <div style="flex: 1;">
+            <label class="form-label" for="est-cost">Preço Custo (R$)</label>
+            <input id="est-cost" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div style="flex: 1;">
+            <label class="form-label" for="est-qty">Qtd em Estoque</label>
+            <input id="est-qty" type="number" min="0" value="1" placeholder="Qtd">
+          </div>
+          <div style="flex: 1;">
+            <label class="form-label" for="est-price">Preço Venda (R$)</label>
+            <input id="est-price" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+        </div>
+        <div class="flex-row" style="gap: 10px;">
+          <button class="btn btn-primary" id="btn-add-estoque" onclick="salvarEstoque()">
+            ➕ Cadastrar Produto
+          </button>
+          <button class="btn btn-secondary" id="btn-cancel-edit-estoque" onclick="cancelarEdicaoEstoque()" style="display: none; width: auto;">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Produtos no Estoque</span>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);" id="estoque-count">0 produtos</span>
+        </div>
+        <div id="estoque-lista">
+          <div class="empty-state">
+            <span class="empty-icon">📦</span>
+            Nenhum produto cadastrado no estoque.
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Mobile Navigation -->
@@ -800,11 +918,19 @@
     </a>
     <a class="mobile-nav-item" data-target="nova">
       <span class="mobile-nav-icon">➕</span>
-      <span>Nova Venda</span>
+      <span>Venda</span>
     </a>
     <a class="mobile-nav-item" data-target="pags">
       <span class="mobile-nav-icon">💰</span>
-      <span>Pagamentos</span>
+      <span>Pags</span>
+    </a>
+    <a class="mobile-nav-item" data-target="custos">
+      <span class="mobile-nav-icon">💸</span>
+      <span>Custos</span>
+    </a>
+    <a class="mobile-nav-item" data-target="estoque">
+      <span class="mobile-nav-icon">📦</span>
+      <span>Estoque</span>
     </a>
   </nav>
 
@@ -877,10 +1003,15 @@
     const R = n => (+n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const hoje = () => new Date().toISOString().slice(0, 10);
 
-    let D = [];
+    let D = { vendas: [], custos: [], estoque: [] };
     let statusFiltro = 'todos';
     let editVendaId = null;
     let editVendaData = null;
+    let editEstoqueId = null;
+
+    const getVendas = () => Array.isArray(D) ? D : (D.vendas || []);
+    const getCustos = () => Array.isArray(D) ? [] : (D.custos || []);
+    const getEstoque = () => Array.isArray(D) ? [] : (D.estoque || []);
 
     // Toast Notification System
     function toast(mensagem, tipo = 'info') {
@@ -994,19 +1125,43 @@
     }
 
     function render() {
-      const vend = D.reduce((s, v) => s + +v.total, 0);
-      const rec = D.reduce((s, v) => s + pago(v), 0);
+      const vendas = getVendas();
+      const custos = getCustos();
+      const estoque = getEstoque();
+
+      // Sales Calculations
+      const vend = vendas.reduce((s, v) => s + +v.total, 0);
+      const rec = vendas.reduce((s, v) => s + pago(v), 0);
+
+      // Cost of Goods Sold (CMV)
+      const cmv = vendas.reduce((s, v) => {
+        const costSale = (v.itens || []).reduce((is, item) => {
+          const estItem = estoque.find(e => (e.nome || '').trim().toLowerCase() === (item.nome || '').trim().toLowerCase());
+          const unitCost = estItem ? +estItem.precoCusto || 0 : 0;
+          return is + (item.qtd * unitCost);
+        }, 0);
+        return s + costSale;
+      }, 0);
+
+      // Fixed Costs
+      const totalCustosFixos = custos.reduce((s, c) => s + +c.valor, 0);
+
+      // Net Profit = Total Vendido - (CMV + Custos Fixos)
+      const lucroLiquido = vend - (cmv + totalCustosFixos);
+
       const dev = {};
-      D.forEach(v => {
+      vendas.forEach(v => {
         if (falta(v) > 0.009) dev[v.cliente] = (dev[v.cliente] || 0) + falta(v);
       });
       const n = Object.keys(dev);
 
       $('kpis').innerHTML = [
         ['Total Vendido', R(vend), ''],
+        ['Custo Mercadoria', R(cmv), 'danger'],
+        ['Custos Fixos', R(totalCustosFixos), 'danger'],
+        ['Lucro Líquido', R(lucroLiquido), lucroLiquido >= 0 ? 'success' : 'danger'],
         ['Recebido', R(rec), 'success'],
-        ['A Receber', R(vend - rec), 'danger'],
-        ['Clientes Devendo', n.length, 'warning']
+        ['A Receber', R(vend - rec), 'warning']
       ].map(([k, v, c]) => `
         <div class="kpi-card ${c}">
           <div class="kpi-label">${k}</div>
@@ -1029,6 +1184,8 @@
       `;
 
       listar();
+      renderCustos();
+      renderEstoque();
     }
 
     function filtrarCliente(nome) {
@@ -1047,7 +1204,8 @@
 
     function listar() {
       const q = $('busca').value.toLowerCase().trim();
-      let filtrados = D.filter(v => v.cliente.toLowerCase().includes(q));
+      const vendas = getVendas();
+      let filtrados = vendas.filter(v => (v.cliente || '').toLowerCase().includes(q));
 
       if (statusFiltro === 'pendente') {
         filtrados = filtrados.filter(v => falta(v) > 0.009);
@@ -1123,6 +1281,163 @@
       `;
     }
 
+    /* CUSTOS FIXOS FUNCTIONS */
+    function renderCustos() {
+      const custos = getCustos();
+      const tot = custos.reduce((s, c) => s + +c.valor, 0);
+      $('custos-total-badge').textContent = `Total: ${R(tot)}`;
+
+      $('custos-lista').innerHTML = custos.map(c => `
+        <div class="card flex-row" style="padding: 12px 16px; margin-bottom: 8px;">
+          <div>
+            <strong style="font-size: 0.98rem;">${c.descricao}</strong>
+            <span style="display: block; font-size: 0.95rem; font-weight: 700; color: var(--danger);">${R(c.valor)}</span>
+          </div>
+          <div>
+            <button class="btn-danger-ghost" onclick="excluirCusto('${c.id}')">🗑️ Remover</button>
+          </div>
+        </div>
+      `).join('') || `
+        <div class="empty-state">
+          <span class="empty-icon">💸</span>
+          Nenhum custo fixo cadastrado.
+        </div>
+      `;
+    }
+
+    function salvarCusto() {
+      const desc = $('custo-desc').value.trim();
+      const val = +$('custo-val').value;
+      if (!desc || !(val >= 0)) return toast('Preencha a descrição e um valor válido.', 'danger');
+
+      const btn = $('btn-add-custo');
+      btn.disabled = true;
+
+      api('custo', 'POST', { descricao: desc, valor: val })
+        .then(d => {
+          D = d;
+          render();
+          $('custo-desc').value = '';
+          $('custo-val').value = '';
+          toast('Custo fixo adicionado!', 'success');
+        })
+        .catch(e => toast(e.message, 'danger'))
+        .finally(() => btn.disabled = false);
+    }
+
+    function excluirCusto(id) {
+      confirmarAcao('Excluir Custo', 'Deseja remover este custo fixo?', () => {
+        api('custo?id=' + id, 'DELETE')
+          .then(d => {
+            D = d;
+            render();
+            toast('Custo removido com sucesso!', 'success');
+          })
+          .catch(e => toast(e.message, 'danger'));
+      });
+    }
+
+    /* ESTOQUE FUNCTIONS */
+    function renderEstoque() {
+      const estoque = getEstoque();
+      $('estoque-count').textContent = `${estoque.length} produto${estoque.length === 1 ? '' : 's'}`;
+
+      $('estoque-lista').innerHTML = estoque.map(e => {
+        const lucroUnit = (e.precoVenda || 0) - (e.precoCusto || 0);
+        return `
+          <div class="card">
+            <div class="flex-row" style="margin-bottom: 8px;">
+              <strong style="font-size: 1.05rem;">${e.nome}</strong>
+              <span class="badge ${e.qtdEstoque > 0 ? 'badge-success' : 'badge-danger'}">
+                Qtd: ${e.qtdEstoque} un.
+              </span>
+            </div>
+            <div class="flex-row" style="font-size: 0.88rem; margin-bottom: 8px; flex-wrap: wrap;">
+              <span>Custo: <b style="color: var(--danger);">${R(e.precoCusto)}</b></span>
+              <span>Venda: <b style="color: var(--primary);">${R(e.precoVenda)}</b></span>
+              <span>Lucro/Un: <b style="color: ${lucroUnit >= 0 ? 'var(--success)' : 'var(--danger)'};">${R(lucroUnit)}</b></span>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+              <button class="btn-edit-ghost" onclick="abrirEdicaoEstoque('${e.id}')">✏️ Editar</button>
+              <button class="btn-danger-ghost" onclick="excluirEstoque('${e.id}')">🗑️ Excluir</button>
+            </div>
+          </div>
+        `;
+      }).join('') || `
+        <div class="empty-state">
+          <span class="empty-icon">📦</span>
+          Nenhum produto no estoque.
+        </div>
+      `;
+    }
+
+    function salvarEstoque() {
+      const nome = $('est-nome').value.trim();
+      const cost = +$('est-cost').value || 0;
+      const qty = +$('est-qty').value || 0;
+      const price = +$('est-price').value || 0;
+
+      if (!nome) return toast('Informe o nome do produto', 'danger');
+
+      const btn = $('btn-add-estoque');
+      btn.disabled = true;
+
+      const method = editEstoqueId ? 'PUT' : 'POST';
+      const body = { id: editEstoqueId, nome, precoCusto: cost, qtdEstoque: qty, precoVenda: price };
+
+      api('estoque', method, body)
+        .then(d => {
+          D = d;
+          render();
+          cancelarEdicaoEstoque();
+          toast(editEstoqueId ? 'Produto atualizado!' : 'Produto cadastrado no estoque!', 'success');
+        })
+        .catch(e => toast(e.message, 'danger'))
+        .finally(() => btn.disabled = false);
+    }
+
+    function abrirEdicaoEstoque(id) {
+      const e = getEstoque().find(item => item.id === id);
+      if (!e) return;
+
+      editEstoqueId = id;
+      $('est-nome').value = e.nome || '';
+      $('est-cost').value = e.precoCusto || 0;
+      $('est-qty').value = e.qtdEstoque || 0;
+      $('est-price').value = e.precoVenda || 0;
+
+      $('estoque-form-title').textContent = '✏️ Editar Produto no Estoque';
+      $('btn-add-estoque').textContent = '💾 Salvar Alterações';
+      $('btn-cancel-edit-estoque').style.display = 'inline-block';
+
+      // scroll to top of section
+      $('estoque-form-title').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelarEdicaoEstoque() {
+      editEstoqueId = null;
+      $('est-nome').value = '';
+      $('est-cost').value = '';
+      $('est-qty').value = '1';
+      $('est-price').value = '';
+
+      $('estoque-form-title').textContent = '📦 Cadastrar Produto no Estoque';
+      $('btn-add-estoque').textContent = '➕ Cadastrar Produto';
+      $('btn-cancel-edit-estoque').style.display = 'none';
+    }
+
+    function excluirEstoque(id) {
+      confirmarAcao('Excluir Produto', 'Tem certeza que deseja remover este produto do estoque?', () => {
+        api('estoque?id=' + id, 'DELETE')
+          .then(d => {
+            D = d;
+            render();
+            toast('Produto removido!', 'success');
+          })
+          .catch(e => toast(e.message, 'danger'));
+      });
+    }
+
     function pagar(id, f) {
       const val = +$('pv' + id).value;
       if (!(val > 0)) return toast('Informe o valor do pagamento', 'danger');
@@ -1166,7 +1481,7 @@
 
     /* EDIT SALE FUNCTIONS */
     function abrirEdicao(id) {
-      const v = D.find(item => item.id === id);
+      const v = getVendas().find(item => item.id === id);
       if (!v) return toast('Venda não encontrada', 'danger');
 
       editVendaId = id;
