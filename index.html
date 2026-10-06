@@ -368,22 +368,25 @@
     }
 
     /* Items List */
+    .item-wrapper {
+      margin-bottom: 8px;
+      background: var(--surface-subtle);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+    }
+
     .item-row {
       display: grid;
       grid-template-columns: 2.5fr 1fr 1.5fr auto;
       gap: 8px;
       align-items: center;
-      margin-bottom: 8px;
-      background: var(--surface-subtle);
-      padding: 8px;
-      border-radius: var(--radius-sm);
     }
 
     @media (max-width: 480px) {
       .item-row {
         grid-template-columns: 1fr 1fr;
       }
-      .item-row input:first-child {
+      .item-row select, .item-row input:first-child {
         grid-column: 1 / -1;
       }
       .item-del-btn {
@@ -403,6 +406,16 @@
     }
 
     .item-del-btn:hover { background: var(--danger-bg); }
+
+    .stock-warning {
+      color: var(--danger);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
     .total-box {
       display: flex;
@@ -550,29 +563,6 @@
       font-size: 1.2rem;
     }
 
-    /* Tables */
-    .table-container {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th, td {
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      font-weight: 700;
-      color: var(--text-muted);
-      background: var(--surface-subtle);
-    }
-
     /* Modals */
     .modal-backdrop {
       position: fixed;
@@ -667,6 +657,7 @@
 
     .toast.success { border-left-color: var(--success); }
     .toast.danger { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
 
     /* Skeleton Loading */
     .skeleton {
@@ -1018,7 +1009,7 @@
       const container = $('toast-container');
       const item = document.createElement('div');
       item.className = `toast ${tipo}`;
-      const icon = tipo === 'success' ? '✅' : tipo === 'danger' ? '⚠️' : 'ℹ️';
+      const icon = tipo === 'success' ? '✅' : tipo === 'danger' ? '⚠️' : tipo === 'warning' ? '⚠️' : 'ℹ️';
       item.innerHTML = `<span>${icon}</span><span>${mensagem}</span>`;
       container.appendChild(item);
       setTimeout(() => {
@@ -1026,7 +1017,7 @@
         item.style.transform = 'translateY(-10px)';
         item.style.transition = 'all 0.3s ease';
         setTimeout(() => item.remove(), 300);
-      }, 3500);
+      }, 4000);
     }
 
     // Modal Control
@@ -1186,6 +1177,7 @@
       listar();
       renderCustos();
       renderEstoque();
+      atualizarOpcoesEstoque();
     }
 
     function filtrarCliente(nome) {
@@ -1410,7 +1402,6 @@
       $('btn-add-estoque').textContent = '💾 Salvar Alterações';
       $('btn-cancel-edit-estoque').style.display = 'inline-block';
 
-      // scroll to top of section
       $('estoque-form-title').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -1435,6 +1426,143 @@
             toast('Produto removido!', 'success');
           })
           .catch(e => toast(e.message, 'danger'));
+      });
+    }
+
+    /* STOCK SELECTION & REPLENISHMENT ALERT FUNCTIONS */
+    function createItemRowHTML(selectedNome = '', qtd = 1, preco = '') {
+      const estoque = getEstoque();
+      let selectHTML = '';
+
+      if (estoque.length > 0) {
+        let options = `<option value="">-- Selecione o produto do estoque --</option>`;
+        let foundInEstoque = false;
+        estoque.forEach(e => {
+          const isSel = (e.nome || '').trim().toLowerCase() === (selectedNome || '').trim().toLowerCase();
+          if (isSel) foundInEstoque = true;
+          options += `<option value="${e.nome}" data-price="${e.precoVenda || 0}" data-qty="${e.qtdEstoque || 0}" ${isSel ? 'selected' : ''}>${e.nome} (${e.qtdEstoque} un. em estoque - ${R(e.precoVenda)})</option>`;
+        });
+        if (selectedNome && !foundInEstoque) {
+          options += `<option value="${selectedNome}" selected>${selectedNome} (Fora do estoque)</option>`;
+        }
+        options += `<option value="__custom__">✏️ Digitar produto manual...</option>`;
+
+        selectHTML = `
+          <select class="item-select" style="width:100%; font-size:0.9rem;">${options}</select>
+          <input placeholder="Nome do produto" value="${selectedNome}" class="item-name-input" style="display: none;">
+        `;
+      } else {
+        selectHTML = `<input placeholder="Nome do produto" value="${selectedNome}" required class="item-name-input">`;
+      }
+
+      return `
+        <div class="item-wrapper">
+          <div class="item-row">
+            <div>${selectHTML}</div>
+            <input type="number" min="1" value="${qtd}" placeholder="Qtd" class="item-qty-input">
+            <input type="number" step="0.01" value="${preco}" placeholder="Preço Un. (R$)" class="item-price-input">
+            <button class="item-del-btn" type="button" title="Remover item">✕</button>
+          </div>
+          <div class="stock-warning" style="display: none;"></div>
+        </div>
+      `;
+    }
+
+    function setupItemRowListeners(wrapper, updateTotalFn) {
+      const sel = wrapper.querySelector('.item-select');
+      const nameInput = wrapper.querySelector('.item-name-input');
+      const qtyInput = wrapper.querySelector('.item-qty-input');
+      const priceInput = wrapper.querySelector('.item-price-input');
+      const delBtn = wrapper.querySelector('.item-del-btn');
+      const warningDiv = wrapper.querySelector('.stock-warning');
+
+      const validateStock = () => {
+        const prodName = sel && sel.style.display !== 'none' && sel.value && sel.value !== '__custom__' ? sel.value : nameInput.value.trim();
+        const estItem = getEstoque().find(e => (e.nome || '').trim().toLowerCase() === prodName.trim().toLowerCase());
+        const desiredQty = +qtyInput.value || 0;
+
+        if (estItem) {
+          if (desiredQty > estItem.qtdEstoque) {
+            warningDiv.style.display = 'flex';
+            warningDiv.innerHTML = `⚠️ <b>Alerta de reposição:</b> Estoque insuficiente (${estItem.qtdEstoque} un. disponíveis).`;
+          } else {
+            warningDiv.style.display = 'none';
+          }
+        } else {
+          warningDiv.style.display = 'none';
+        }
+        updateTotalFn();
+      };
+
+      if (sel) {
+        sel.onchange = () => {
+          if (sel.value === '__custom__') {
+            sel.style.display = 'none';
+            nameInput.style.display = 'block';
+            nameInput.focus();
+          } else if (sel.value !== '') {
+            const opt = sel.options[sel.selectedIndex];
+            if (opt && opt.dataset.price) {
+              priceInput.value = opt.dataset.price;
+            }
+          }
+          validateStock();
+        };
+      }
+
+      nameInput.oninput = validateStock;
+      qtyInput.oninput = validateStock;
+      priceInput.oninput = updateTotalFn;
+
+      delBtn.onclick = () => {
+        wrapper.remove();
+        updateTotalFn();
+      };
+
+      validateStock();
+    }
+
+    function getItemDataFromWrapper(wrapper) {
+      const sel = wrapper.querySelector('.item-select');
+      const nameInput = wrapper.querySelector('.item-name-input');
+      const qtyInput = wrapper.querySelector('.item-qty-input');
+      const priceInput = wrapper.querySelector('.item-price-input');
+
+      let nome = '';
+      if (sel && sel.style.display !== 'none' && sel.value && sel.value !== '__custom__') {
+        nome = sel.value;
+      } else {
+        nome = nameInput.value.trim();
+      }
+
+      return {
+        nome,
+        qtd: +qtyInput.value || 0,
+        preco: +priceInput.value || 0
+      };
+    }
+
+    function atualizarOpcoesEstoque() {
+      const estoque = getEstoque();
+      if (!estoque.length) return;
+
+      document.querySelectorAll('#itens .item-wrapper, #edit-itens .item-wrapper').forEach(wrapper => {
+        const sel = wrapper.querySelector('.item-select');
+        if (!sel) {
+          const nameInput = wrapper.querySelector('.item-name-input');
+          const qtyInput = wrapper.querySelector('.item-qty-input');
+          const priceInput = wrapper.querySelector('.item-price-input');
+          const currentName = nameInput ? nameInput.value : '';
+          const currentQty = qtyInput ? qtyInput.value : 1;
+          const currentPrice = priceInput ? priceInput.value : '';
+
+          const newWrapperHTML = createItemRowHTML(currentName, currentQty, currentPrice);
+          const temp = document.createElement('div');
+          temp.innerHTML = newWrapperHTML;
+          const newWrapper = temp.firstElementChild;
+          wrapper.parentNode.replaceChild(newWrapper, wrapper);
+          setupItemRowListeners(newWrapper, wrapper.parentNode && wrapper.parentNode.id === 'itens' ? total : editTotal);
+        }
       });
     }
 
@@ -1502,27 +1630,15 @@
     }
 
     function addEditItem(nome = '', qtd = 1, preco = '') {
-      const d = document.createElement('div');
-      d.className = 'item-row';
-      d.innerHTML = `
-        <input placeholder="Nome do produto" value="${nome}" required>
-        <input type="number" min="1" value="${qtd}" placeholder="Qtd">
-        <input type="number" step="0.01" value="${preco}" placeholder="Preço Un. (R$)">
-        <button class="item-del-btn" type="button" title="Remover item">✕</button>
-      `;
-      d.querySelectorAll('input').forEach(i => i.oninput = editTotal);
-      d.querySelector('.item-del-btn').onclick = () => {
-        d.remove();
-        editTotal();
-      };
-      $('edit-itens').appendChild(d);
+      const container = document.createElement('div');
+      container.innerHTML = createItemRowHTML(nome, qtd, preco);
+      const wrapper = container.firstElementChild;
+      $('edit-itens').appendChild(wrapper);
+      setupItemRowListeners(wrapper, editTotal);
     }
 
     function getEditItens() {
-      return [...document.querySelectorAll('#edit-itens .item-row')].map(d => {
-        const i = d.querySelectorAll('input');
-        return { nome: i[0].value.trim(), qtd: +i[1].value, preco: +i[2].value };
-      }).filter(i => i.nome && i.qtd > 0);
+      return [...document.querySelectorAll('#edit-itens .item-wrapper')].map(getItemDataFromWrapper).filter(i => i.nome && i.qtd > 0);
     }
 
     function editTotal() {
@@ -1535,6 +1651,19 @@
       const c = $('edit-cli').value.trim();
       if (!c || !it.length) {
         return toast('Informe o nome do cliente e ao menos um produto.', 'danger');
+      }
+
+      // Check for replenishment alert warnings
+      let hasReplenishmentAlert = false;
+      it.forEach(item => {
+        const estItem = getEstoque().find(e => (e.nome || '').trim().toLowerCase() === item.nome.trim().toLowerCase());
+        if (estItem && item.qtd > estItem.qtdEstoque) {
+          hasReplenishmentAlert = true;
+        }
+      });
+
+      if (hasReplenishmentAlert) {
+        toast('⚠️ Alerta de reposição: A quantidade vendida de alguns itens ultrapassa o estoque disponível.', 'warning');
       }
 
       const btn = $('btn-salvar-edicao');
@@ -1564,28 +1693,16 @@
     }
 
     /* NEW SALE FUNCTIONS */
-    function addItem() {
-      const d = document.createElement('div');
-      d.className = 'item-row';
-      d.innerHTML = `
-        <input placeholder="Nome do produto" required>
-        <input type="number" min="1" value="1" placeholder="Qtd">
-        <input type="number" step="0.01" placeholder="Preço Un. (R$)">
-        <button class="item-del-btn" type="button" title="Remover item">✕</button>
-      `;
-      d.querySelectorAll('input').forEach(i => i.oninput = total);
-      d.querySelector('.item-del-btn').onclick = () => {
-        d.remove();
-        total();
-      };
-      $('itens').appendChild(d);
+    function addItem(nome = '', qtd = 1, preco = '') {
+      const container = document.createElement('div');
+      container.innerHTML = createItemRowHTML(nome, qtd, preco);
+      const wrapper = container.firstElementChild;
+      $('itens').appendChild(wrapper);
+      setupItemRowListeners(wrapper, total);
     }
 
     function itens() {
-      return [...document.querySelectorAll('#itens .item-row')].map(d => {
-        const i = d.querySelectorAll('input');
-        return { nome: i[0].value.trim(), qtd: +i[1].value, preco: +i[2].value };
-      }).filter(i => i.nome && i.qtd > 0);
+      return [...document.querySelectorAll('#itens .item-wrapper')].map(getItemDataFromWrapper).filter(i => i.nome && i.qtd > 0);
     }
 
     function total() {
@@ -1598,6 +1715,19 @@
       const c = $('cli').value.trim();
       if (!c || !it.length) {
         return toast('Informe o nome do cliente e ao menos um produto.', 'danger');
+      }
+
+      // Check for replenishment alert warnings
+      let hasReplenishmentAlert = false;
+      it.forEach(item => {
+        const estItem = getEstoque().find(e => (e.nome || '').trim().toLowerCase() === item.nome.trim().toLowerCase());
+        if (estItem && item.qtd > estItem.qtdEstoque) {
+          hasReplenishmentAlert = true;
+        }
+      });
+
+      if (hasReplenishmentAlert) {
+        toast('⚠️ Alerta de reposição: A quantidade vendida de alguns itens ultrapassa o estoque disponível.', 'warning');
       }
 
       const btnBs = $('bs');
