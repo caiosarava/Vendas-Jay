@@ -1124,21 +1124,26 @@
       const vend = vendas.reduce((s, v) => s + +v.total, 0);
       const rec = vendas.reduce((s, v) => s + pago(v), 0);
 
-      // Cost of Goods Sold (CMV)
-      const cmv = vendas.reduce((s, v) => {
-        const costSale = (v.itens || []).reduce((is, item) => {
+      // Cost of Goods Sold Realized (CMV Realizado): calculated proportionally for paid amounts only
+      const cmvRealizado = vendas.reduce((s, v) => {
+        const valorPagoVenda = pago(v);
+        if (!(valorPagoVenda > 0) || !(v.total > 0)) return s;
+
+        const totalCostOfSale = (v.itens || []).reduce((is, item) => {
           const estItem = estoque.find(e => (e.nome || '').trim().toLowerCase() === (item.nome || '').trim().toLowerCase());
           const unitCost = estItem ? +estItem.precoCusto || 0 : 0;
           return is + (item.qtd * unitCost);
         }, 0);
-        return s + costSale;
+
+        const paidRatio = Math.min(1, valorPagoVenda / v.total);
+        return s + (totalCostOfSale * paidRatio);
       }, 0);
 
       // Fixed Costs
       const totalCustosFixos = custos.reduce((s, c) => s + +c.valor, 0);
 
-      // Net Profit = Total Vendido - (CMV + Custos Fixos)
-      const lucroLiquido = vend - (cmv + totalCustosFixos);
+      // Realized Net Profit = Recebido - (CMV Realizado + Custos Fixos)
+      const lucroLiquido = rec - (cmvRealizado + totalCustosFixos);
 
       const dev = {};
       vendas.forEach(v => {
@@ -1148,10 +1153,10 @@
 
       $('kpis').innerHTML = [
         ['Total Vendido', R(vend), ''],
-        ['Custo Mercadoria', R(cmv), 'danger'],
-        ['Custos Fixos', R(totalCustosFixos), 'danger'],
-        ['Lucro Líquido', R(lucroLiquido), lucroLiquido >= 0 ? 'success' : 'danger'],
         ['Recebido', R(rec), 'success'],
+        ['Custo Mercadoria (Pago)', R(cmvRealizado), 'danger'],
+        ['Custos Fixos', R(totalCustosFixos), 'danger'],
+        ['Lucro Líquido Realizado', R(lucroLiquido), lucroLiquido >= 0 ? 'success' : 'danger'],
         ['A Receber', R(vend - rec), 'warning']
       ].map(([k, v, c]) => `
         <div class="kpi-card ${c}">
