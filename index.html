@@ -367,35 +367,39 @@
       transform: none !important;
     }
 
-    /* Items List */
-    .item-wrapper {
+    /* Items & Payments List */
+    .item-wrapper, .pag-wrapper {
       margin-bottom: 8px;
       background: var(--surface-subtle);
       padding: 10px;
       border-radius: var(--radius-sm);
     }
 
-    .item-row {
+    .item-row, .pag-row {
       display: grid;
       grid-template-columns: 2.5fr 1fr 1.5fr auto;
       gap: 8px;
       align-items: center;
     }
 
+    .pag-row {
+      grid-template-columns: 1.5fr 1.5fr 1.5fr auto;
+    }
+
     @media (max-width: 480px) {
-      .item-row {
+      .item-row, .pag-row {
         grid-template-columns: 1fr 1fr;
       }
-      .item-row select, .item-row input:first-child {
+      .item-row select, .item-row input:first-child, .pag-row input:first-child {
         grid-column: 1 / -1;
       }
-      .item-del-btn {
+      .item-del-btn, .pag-del-btn {
         grid-column: 2;
         justify-self: end;
       }
     }
 
-    .item-del-btn {
+    .item-del-btn, .pag-del-btn {
       background: transparent;
       border: none;
       color: var(--danger);
@@ -405,7 +409,7 @@
       border-radius: 6px;
     }
 
-    .item-del-btn:hover { background: var(--danger-bg); }
+    .item-del-btn:hover, .pag-del-btn:hover { background: var(--danger-bg); }
 
     .stock-warning {
       color: var(--danger);
@@ -978,8 +982,19 @@
           <span>Novo Valor Total</span>
           <span class="total-amount" id="edit-tot">R$ 0,00</span>
         </div>
+
+        <div class="form-group" style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 12px;">
+          <div class="flex-row" style="margin-bottom: 6px;">
+            <label class="form-label" style="margin: 0;">Pagamentos Registrados</label>
+          </div>
+          <div id="edit-pagamentos"></div>
+          <button type="button" class="btn btn-secondary" onclick="addEditPagamento()" style="margin-top: 8px;">
+            <span>💰</span> Adicionar pagamento
+          </button>
+        </div>
       </div>
-      <div class="modal-actions">
+
+      <div class="modal-actions" style="margin-top: 16px;">
         <button class="btn btn-secondary" onclick="fecharModal('modal-edit')">Cancelar</button>
         <button class="btn btn-primary" id="btn-salvar-edicao" onclick="salvarEdicao()">Salvar Alterações</button>
       </div>
@@ -1297,7 +1312,7 @@
       `).join('') || `
         <div class="empty-state">
           <span class="empty-icon">💸</span>
-          Nenhum custo fixo cadastrado.
+          Nenhum custo cadastrado.
         </div>
       `;
     }
@@ -1612,7 +1627,7 @@
       );
     }
 
-    /* EDIT SALE FUNCTIONS */
+    /* EDIT SALE & PAYMENTS FUNCTIONS */
     function abrirEdicao(id) {
       const v = getVendas().find(item => item.id === id);
       if (!v) return toast('Venda não encontrada', 'danger');
@@ -1623,6 +1638,7 @@
       $('edit-cli').value = v.cliente || '';
       $('edit-tel').value = v.telefone || '';
       $('edit-itens').innerHTML = '';
+      $('edit-pagamentos').innerHTML = '';
 
       if (v.itens && v.itens.length) {
         v.itens.forEach(i => addEditItem(i.nome, i.qtd, i.preco));
@@ -1630,8 +1646,47 @@
         addEditItem();
       }
 
+      if (v.pagamentos && v.pagamentos.length) {
+        v.pagamentos.forEach(p => addEditPagamento(p.valor, p.forma, p.data, p.id));
+      }
+
       editTotal();
       abrirModal('modal-edit');
+    }
+
+    function addEditPagamento(val = '', forma = 'Pix', pData = '', id = '') {
+      const container = document.createElement('div');
+      container.className = 'pag-wrapper';
+      container.innerHTML = `
+        <div class="pag-row">
+          <input type="number" step="0.01" min="0" value="${val}" placeholder="Valor Pago (R$)" class="edit-pag-valor">
+          <select class="edit-pag-forma">
+            <option ${forma === 'Pix' ? 'selected' : ''}>Pix</option>
+            <option ${forma === 'Dinheiro' ? 'selected' : ''}>Dinheiro</option>
+            <option ${forma === 'Cartão' ? 'selected' : ''}>Cartão</option>
+            <option ${forma === 'Entrada' ? 'selected' : ''}>Entrada</option>
+          </select>
+          <input type="date" value="${pData || hoje()}" class="edit-pag-data">
+          <button class="pag-del-btn" type="button" title="Remover pagamento">✕</button>
+        </div>
+      `;
+      const wrapper = container;
+      wrapper.querySelector('.pag-del-btn').onclick = () => wrapper.remove();
+      $('edit-pagamentos').appendChild(wrapper);
+    }
+
+    function getEditPagamentos() {
+      return [...document.querySelectorAll('#edit-pagamentos .pag-wrapper')].map(wrapper => {
+        const valInput = wrapper.querySelector('.edit-pag-valor');
+        const formaSel = wrapper.querySelector('.edit-pag-forma');
+        const dataInput = wrapper.querySelector('.edit-pag-data');
+
+        return {
+          valor: +valInput.value || 0,
+          forma: formaSel.value,
+          data: dataInput.value || hoje()
+        };
+      }).filter(p => p.valor > 0);
     }
 
     function addEditItem(nome = '', qtd = 1, preco = '') {
@@ -1680,13 +1735,14 @@
         data: editVendaData || hoje(),
         cliente: c,
         telefone: $('edit-tel').value.trim(),
-        itens: it
+        itens: it,
+        pagamentos: getEditPagamentos()
       })
       .then(d => {
         D = d;
         render();
         fecharModal('modal-edit');
-        toast('Venda atualizada com sucesso!', 'success');
+        toast('Venda e pagamentos atualizados com sucesso!', 'success');
       })
       .catch(e => {
         toast(e.message, 'danger');
